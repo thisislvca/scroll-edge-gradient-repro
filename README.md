@@ -7,7 +7,7 @@ The important trick is not a stronger blur or a tinted navigation bar. The anima
 ```text
 UIViewController root (black)
 ├── finite animated gradient view
-└── transparent UICollectionView
+└── transparent UIScrollView
     └── opaque cards, headings, and charts
 ```
 
@@ -18,11 +18,11 @@ When an opaque card reaches the compact navigation region, UIKit can soften the 
 Use the two bottom tabs to switch between:
 
 - **Separated**: the reconstructed two-source hierarchy.
-- **Dark blur**: the same animated background with a fixed Manna-style dark blur/fade over the compact-title region.
+- **Manna bug**: the same field is nested inside scroll content with the opaque cards, recreating the original source-flattening failure.
 
 Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
-For scripted capture, launch with `--dark-overlay` to start directly in the control experiment (`--flattened` and `--one-pass` remain aliases).
+For scripted capture, launch with `--manna-bug` to start directly in the historical control (`--dark-overlay`, `--flattened`, and `--one-pass` remain aliases).
 
 ## Reverse-engineered findings
 

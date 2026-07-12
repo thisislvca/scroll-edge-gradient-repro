@@ -3,40 +3,40 @@ import UIKit
 
 enum GradientExperiment: Int, CaseIterable {
     case separated
-    case darkOverlay
+    case mannaBug
 
     var tabTitle: String {
         switch self {
         case .separated: "Separated"
-        case .darkOverlay: "Dark blur"
+        case .mannaBug: "Manna bug"
         }
     }
 
     var tabImage: String {
         switch self {
         case .separated: "square.3.layers.3d"
-        case .darkOverlay: "rectangle.tophalf.inset.filled"
+        case .mannaBug: "rectangle.2.swap"
         }
     }
 
     var accent: Color {
         switch self {
         case .separated: .cyan
-        case .darkOverlay: .orange
+        case .mannaBug: .orange
         }
     }
 
     var badge: String {
         switch self {
         case .separated: "WORKING MODEL"
-        case .darkOverlay: "OLD MANNA STYLE"
+        case .mannaBug: "ORIGINAL MANNA BUG"
         }
     }
 
     var heroTitle: String {
         switch self {
         case .separated: "The gradient remains visible"
-        case .darkOverlay: "The edge receives a dark veil"
+        case .mannaBug: "The page has color; the edge doesn't"
         }
     }
 
@@ -44,15 +44,15 @@ enum GradientExperiment: Int, CaseIterable {
         switch self {
         case .separated:
             "The color field and scrolling content stay in separate compositing planes."
-        case .darkOverlay:
-            "The identical animated field stays behind the page, but a fixed dark blur covers the title region."
+        case .mannaBug:
+            "The identical field sits inside scroll content, where opaque cards can replace it before the edge effect runs."
         }
     }
 
     var result: String {
         switch self {
         case .separated: "Color survives beneath the compact title"
-        case .darkOverlay: "Page colors remain; the title region turns dark"
+        case .mannaBug: "The compact title receives the card's dark pixels"
         }
     }
 }
@@ -89,8 +89,10 @@ private enum LabItem {
 final class HealthGradientViewController: UIViewController {
     private let experiment: GradientExperiment
     private let finiteGradientView = FiniteGradientView()
-    private let darkEdgeOverlay = DarkScrollEdgeOverlayView()
-    private let collectionView: UICollectionView
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+    private let stackView = UIStackView()
+    private var hostedControllers: [UIViewController] = []
 
     private var items: [LabItem] {
         var result: [LabItem] = [.hero]
@@ -106,7 +108,7 @@ final class HealthGradientViewController: UIViewController {
                 title: "Track the orange, purple, and blue",
                 detail: self.experiment == .separated
                     ? "Their positions remain visible while the foreground softens."
-                    : "They remain in the page, but the fixed dark material mutes them behind the title."
+                    : "They are visible in the page, but disappear when an opaque card becomes the edge effect's input."
             )),
             .section(kicker: "02 · COMPOSITING", title: "What the edge receives"),
             .layers,
@@ -121,10 +123,6 @@ final class HealthGradientViewController: UIViewController {
 
     init(experiment: GradientExperiment) {
         self.experiment = experiment
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 12
-        layout.sectionInset = UIEdgeInsets(top: 8, left: 18, bottom: 120, right: 18)
-        self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -137,97 +135,102 @@ final class HealthGradientViewController: UIViewController {
         self.navigationItem.title = "Scroll Edge Lab"
         self.view.backgroundColor = .black
         self.navigationItem.largeTitleDisplayMode = .always
-        self.configureCollectionView()
+        self.configureScrollView()
+        self.installContent()
         self.installExperimentComposition()
-        self.setContentScrollView(self.collectionView, for: .top)
-        self.collectionView.topEdgeEffect.style = .automatic
+        self.setContentScrollView(self.scrollView, for: .top)
+        self.scrollView.topEdgeEffect.style = .automatic
     }
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        self.collectionView.frame = self.view.bounds
+        self.scrollView.frame = self.view.bounds
         self.layoutGradient()
     }
 
-    private func configureCollectionView() {
-        self.collectionView.backgroundColor = .clear
-        self.collectionView.alwaysBounceVertical = true
-        self.collectionView.contentInsetAdjustmentBehavior = .automatic
-        self.collectionView.delegate = self
-        self.collectionView.dataSource = self
-        self.collectionView.accessibilityIdentifier = "research.collection.\(self.experiment.rawValue)"
-        self.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "LabCell")
-        self.view.addSubview(self.collectionView)
+    private func configureScrollView() {
+        self.scrollView.backgroundColor = .clear
+        self.scrollView.alwaysBounceVertical = true
+        self.scrollView.contentInsetAdjustmentBehavior = .automatic
+        self.scrollView.delegate = self
+        self.scrollView.showsVerticalScrollIndicator = false
+        self.scrollView.accessibilityIdentifier = "research.scroll.\(self.experiment.rawValue)"
+        self.view.addSubview(self.scrollView)
+
+        self.contentView.backgroundColor = .clear
+        self.contentView.translatesAutoresizingMaskIntoConstraints = false
+        self.scrollView.addSubview(self.contentView)
+
+        self.stackView.axis = .vertical
+        self.stackView.spacing = 12
+        self.stackView.translatesAutoresizingMaskIntoConstraints = false
+        self.contentView.addSubview(self.stackView)
+
+        NSLayoutConstraint.activate([
+            self.contentView.leadingAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.leadingAnchor),
+            self.contentView.trailingAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.trailingAnchor),
+            self.contentView.topAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.topAnchor),
+            self.contentView.bottomAnchor.constraint(equalTo: self.scrollView.contentLayoutGuide.bottomAnchor),
+            self.contentView.widthAnchor.constraint(equalTo: self.scrollView.frameLayoutGuide.widthAnchor),
+
+            self.stackView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 18),
+            self.stackView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -18),
+            self.stackView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 8),
+            self.stackView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -120),
+        ])
+    }
+
+    private func installContent() {
+        for (index, item) in self.items.enumerated() {
+            let host = UIHostingController(rootView: LabItemView(item: item, experiment: self.experiment))
+            host.view.backgroundColor = .clear
+            host.view.tag = index
+            self.addChild(host)
+            self.stackView.addArrangedSubview(host.view)
+            host.view.heightAnchor.constraint(equalToConstant: item.height).isActive = true
+            host.didMove(toParent: self)
+            self.hostedControllers.append(host)
+        }
     }
 
     private func installExperimentComposition() {
-        // Keep the field above the root view's black backing layer, but below the
-        // transparent scrolling foreground. A negative zPosition can place it
-        // behind the root layer itself and make it disappear on some layouts.
-        self.finiteGradientView.layer.zPosition = 0
-        self.collectionView.layer.zPosition = 1
-        self.view.insertSubview(self.finiteGradientView, belowSubview: self.collectionView)
-
-        if self.experiment == .darkOverlay {
-            self.darkEdgeOverlay.layer.zPosition = 2
-            self.view.addSubview(self.darkEdgeOverlay)
+        switch self.experiment {
+        case .separated:
+            self.finiteGradientView.layer.zPosition = 0
+            self.scrollView.layer.zPosition = 1
+            self.view.insertSubview(self.finiteGradientView, belowSubview: self.scrollView)
+        case .mannaBug:
+            // This is the historical Manna hierarchy: the gradient is ordinary
+            // scroll content, behind the opaque cards in the same source plane.
+            self.finiteGradientView.layer.zPosition = 0
+            self.stackView.layer.zPosition = 1
+            self.contentView.insertSubview(self.finiteGradientView, at: 0)
         }
     }
 
     private func layoutGradient() {
-        self.finiteGradientView.frame = GradientGeometry.frame(
-            viewport: self.view.bounds,
-            contentOffsetY: self.collectionView.contentOffset.y
-        )
-        self.darkEdgeOverlay.frame = CGRect(
-            x: 0,
-            y: 0,
-            width: self.view.bounds.width,
-            height: max(156, self.view.safeAreaInsets.top + 104)
-        )
+        switch self.experiment {
+        case .separated:
+            let scrollDistance = max(
+                0,
+                self.scrollView.contentOffset.y + self.scrollView.adjustedContentInset.top
+            )
+            self.finiteGradientView.frame = GradientGeometry.frame(
+                viewport: self.view.bounds,
+                contentOffsetY: scrollDistance
+            )
+        case .mannaBug:
+            self.finiteGradientView.frame = CGRect(
+                x: 0,
+                y: -self.scrollView.adjustedContentInset.top,
+                width: self.view.bounds.width,
+                height: self.view.bounds.height * GradientGeometry.heightFraction
+            )
+        }
     }
 }
 
-extension HealthGradientViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        self.items.count
-    }
-
-    func collectionView(
-        _ collectionView: UICollectionView,
-        cellForItemAt indexPath: IndexPath
-    ) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "LabCell", for: indexPath)
-        let item = self.items[indexPath.item]
-        cell.backgroundColor = .clear
-        cell.contentConfiguration = UIHostingConfiguration {
-            LabItemView(item: item, experiment: self.experiment)
-        }
-        .margins(.all, 0)
-
-        switch item {
-        case .hero:
-            cell.accessibilityIdentifier = "experiment.hero.\(self.experiment.rawValue)"
-        case .metrics:
-            cell.accessibilityIdentifier = "recovered.parameters"
-        default:
-            cell.accessibilityIdentifier = nil
-        }
-        return cell
-    }
-
-    func collectionView(
-        _ collectionView: UICollectionView,
-        layout collectionViewLayout: UICollectionViewLayout,
-        sizeForItemAt indexPath: IndexPath
-    ) -> CGSize {
-        let insets = (collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset ?? .zero
-        return CGSize(
-            width: collectionView.bounds.width - insets.left - insets.right,
-            height: self.items[indexPath.item].height
-        )
-    }
-
+extension HealthGradientViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         self.layoutGradient()
     }
@@ -268,7 +271,7 @@ private struct ExperimentHero: View {
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(self.experiment.accent)
                 Spacer()
-                Text(self.experiment == .separated ? "SOURCE-AWARE" : "FIXED OVERLAY")
+                Text(self.experiment == .separated ? "SOURCE-AWARE" : "ONE SCROLL SOURCE")
                     .font(.caption2.monospaced().weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -286,7 +289,7 @@ private struct ExperimentHero: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.82))
         }
-        .labSurface(accent: self.experiment.accent, emphasized: true)
+        .labSurface(accent: self.experiment.accent)
     }
 }
 
@@ -339,14 +342,14 @@ private struct LayerDiagram: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(self.experiment == .separated ? "SOURCE-AWARE EDGE" : "DARK OVERLAY ABOVE THE SAME PAGE")
+            Text(self.experiment == .separated ? "SOURCE-AWARE EDGE" : "HISTORICAL MANNA HIERARCHY")
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(self.experiment.accent)
 
             LayerRow(
                 icon: "circle.hexagongrid.fill",
                 title: "Color field",
-                detail: "Independent root sibling in both tabs",
+                detail: self.experiment == .separated ? "Independent root sibling" : "Child of the scroll-content container",
                 tint: .purple
             )
 
@@ -361,9 +364,9 @@ private struct LayerDiagram: View {
                 )
             } else {
                 LayerRow(
-                    icon: "rectangle.tophalf.inset.filled",
-                    title: "Dark edge overlay",
-                    detail: "Fixed blur and black fade above the page",
+                    icon: "text.below.photo",
+                    title: "Opaque foreground",
+                    detail: "Cards cover the field in the same source plane",
                     tint: .orange
                 )
             }
@@ -371,8 +374,8 @@ private struct LayerDiagram: View {
             Divider().overlay(.white.opacity(0.08))
 
             Label(
-                self.experiment == .separated ? "Field remains visible" : "Overlay darkens the same field",
-                systemImage: self.experiment == .separated ? "checkmark.seal.fill" : "circle.lefthalf.filled"
+                self.experiment == .separated ? "Field remains visible" : "Card pixels reach the edge effect",
+                systemImage: self.experiment == .separated ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
             )
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(self.experiment.accent)
@@ -416,7 +419,7 @@ private struct Connector: View {
                 .fill(self.active ? Color.cyan : Color.secondary.opacity(0.35))
                 .frame(width: 2, height: 16)
                 .padding(.leading, 19)
-            Text(self.active ? "revealed through the edge" : "covered only at the edge")
+            Text(self.active ? "revealed through the edge" : "flattened before the edge")
                 .font(.caption2.monospaced())
                 .foregroundStyle(.tertiary)
         }
@@ -434,7 +437,7 @@ private struct EquationCard: View {
 
             Text(self.experiment == .separated
                  ? "soften(foreground)\n  over background"
-                 : "darkMaterial\n  over the same background")
+                 : "edgeEffect(cards\n  over color field)")
                 .font(.system(.body, design: .monospaced, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -443,7 +446,7 @@ private struct EquationCard: View {
 
             Text(self.experiment == .separated
                  ? "The background is still available when the foreground fades."
-                 : "The field is still there, but the fixed overlay deliberately suppresses it at the top.")
+                 : "The page shows color, but an opaque card has already replaced those pixels before the edge effect runs.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

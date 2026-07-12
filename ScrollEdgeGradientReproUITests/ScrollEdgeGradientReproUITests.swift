@@ -20,24 +20,25 @@ final class ScrollEdgeGradientReproUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.navigationBars["Scroll Edge Lab"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.cells["experiment.hero.0"].exists)
+        XCTAssertTrue(app.staticTexts["The gradient remains visible"].exists)
 
-        let collection = app.collectionViews["research.collection.0"]
-        XCTAssertTrue(collection.exists)
-        collection.swipeUp()
-        XCTAssertTrue(collection.exists)
+        let scrollView = app.scrollViews["research.scroll.0"]
+        XCTAssertTrue(scrollView.exists)
+        scrollView.swipeUp()
+        XCTAssertTrue(scrollView.exists)
         XCTAssertTrue(app.navigationBars["Scroll Edge Lab"].exists)
     }
 
     @MainActor
-    func testDarkBlurControlIsASeparateTab() throws {
+    func testMannaBugIsASeparateTab() throws {
         let app = XCUIApplication()
         app.launch()
 
-        let darkBlurTab = app.tabBars.buttons["Dark blur"]
-        XCTAssertTrue(darkBlurTab.waitForExistence(timeout: 5))
-        darkBlurTab.tap()
+        let mannaBugTab = app.tabBars.buttons["Manna bug"]
+        XCTAssertTrue(mannaBugTab.waitForExistence(timeout: 5))
+        mannaBugTab.tap()
         XCTAssertTrue(app.navigationBars["Scroll Edge Lab"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.cells["experiment.hero.1"].exists)
+        XCTAssertTrue(app.staticTexts["The page has color; the edge doesn't"].exists)
+        XCTAssertTrue(app.scrollViews["research.scroll.1"].exists)
     }
 }

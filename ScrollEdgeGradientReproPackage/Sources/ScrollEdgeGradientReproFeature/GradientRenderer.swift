@@ -49,49 +49,6 @@ final class FiniteGradientView: UIView {
 }
 
 @MainActor
-final class DarkScrollEdgeOverlayView: UIView {
-    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-    private let dimView = UIView()
-    private let fadeMask = CAGradientLayer()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.configure()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        self.configure()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        self.blurView.frame = self.bounds
-        self.dimView.frame = self.bounds
-        self.fadeMask.frame = self.bounds
-    }
-
-    private func configure() {
-        self.isUserInteractionEnabled = false
-        self.backgroundColor = .clear
-        self.dimView.backgroundColor = UIColor.black.withAlphaComponent(0.42)
-        self.addSubview(self.blurView)
-        self.addSubview(self.dimView)
-
-        self.fadeMask.colors = [
-            UIColor.black.cgColor,
-            UIColor.black.cgColor,
-            UIColor.black.withAlphaComponent(0.72).cgColor,
-            UIColor.clear.cgColor,
-        ]
-        self.fadeMask.locations = [0, 0.42, 0.72, 1]
-        self.fadeMask.startPoint = CGPoint(x: 0.5, y: 0)
-        self.fadeMask.endPoint = CGPoint(x: 0.5, y: 1)
-        self.layer.mask = self.fadeMask
-    }
-}
-
-@MainActor
 private final class SmoothFadeView: UIView {
     override class var layerClass: AnyClass { CAGradientLayer.self }
 
