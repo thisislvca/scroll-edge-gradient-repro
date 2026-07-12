@@ -3,40 +3,40 @@ import UIKit
 
 enum GradientExperiment: Int, CaseIterable {
     case separated
-    case flattened
+    case darkOverlay
 
     var tabTitle: String {
         switch self {
         case .separated: "Separated"
-        case .flattened: "Flattened"
+        case .darkOverlay: "Dark blur"
         }
     }
 
     var tabImage: String {
         switch self {
         case .separated: "square.3.layers.3d"
-        case .flattened: "square.stack.3d.down.right"
+        case .darkOverlay: "rectangle.tophalf.inset.filled"
         }
     }
 
     var accent: Color {
         switch self {
         case .separated: .cyan
-        case .flattened: .orange
+        case .darkOverlay: .orange
         }
     }
 
     var badge: String {
         switch self {
         case .separated: "WORKING MODEL"
-        case .flattened: "FAILURE CONTROL"
+        case .darkOverlay: "OLD MANNA STYLE"
         }
     }
 
     var heroTitle: String {
         switch self {
         case .separated: "The gradient remains visible"
-        case .flattened: "The gradient disappears"
+        case .darkOverlay: "The edge receives a dark veil"
         }
     }
 
@@ -44,15 +44,15 @@ enum GradientExperiment: Int, CaseIterable {
         switch self {
         case .separated:
             "The color field and scrolling content stay in separate compositing planes."
-        case .flattened:
-            "The field is ordinary scroll content, so an opaque surface replaces its pixels."
+        case .darkOverlay:
+            "The identical animated field stays behind the page, but a fixed dark blur covers the title region."
         }
     }
 
     var result: String {
         switch self {
         case .separated: "Color survives beneath the compact title"
-        case .flattened: "The compact title receives a dark blur"
+        case .darkOverlay: "Page colors remain; the title region turns dark"
         }
     }
 }
@@ -65,7 +65,6 @@ private struct LabStep {
 
 private enum LabItem {
     case hero
-    case specimen
     case section(kicker: String, title: String)
     case step(LabStep)
     case layers
@@ -76,7 +75,6 @@ private enum LabItem {
     var height: CGFloat {
         switch self {
         case .hero: 188
-        case .specimen: 218
         case .section: 66
         case .step: 134
         case .layers: 300
@@ -91,13 +89,11 @@ private enum LabItem {
 final class HealthGradientViewController: UIViewController {
     private let experiment: GradientExperiment
     private let finiteGradientView = FiniteGradientView()
+    private let darkEdgeOverlay = DarkScrollEdgeOverlayView()
     private let collectionView: UICollectionView
 
     private var items: [LabItem] {
         var result: [LabItem] = [.hero]
-        if self.experiment == .flattened {
-            result.append(.specimen)
-        }
         result += [
             .section(kicker: "01 · RUN THE TEST", title: "Watch the compact title"),
             .step(LabStep(
@@ -110,7 +106,7 @@ final class HealthGradientViewController: UIViewController {
                 title: "Track the orange, purple, and blue",
                 detail: self.experiment == .separated
                     ? "Their positions remain visible while the foreground softens."
-                    : "They vanish when the opaque card becomes the edge effect's input."
+                    : "They remain in the page, but the fixed dark material mutes them behind the title."
             )),
             .section(kicker: "02 · COMPOSITING", title: "What the edge receives"),
             .layers,
@@ -165,21 +161,29 @@ final class HealthGradientViewController: UIViewController {
     }
 
     private func installExperimentComposition() {
-        guard self.experiment == .separated else { return }
-
         // Keep the field above the root view's black backing layer, but below the
         // transparent scrolling foreground. A negative zPosition can place it
         // behind the root layer itself and make it disappear on some layouts.
         self.finiteGradientView.layer.zPosition = 0
         self.collectionView.layer.zPosition = 1
         self.view.insertSubview(self.finiteGradientView, belowSubview: self.collectionView)
+
+        if self.experiment == .darkOverlay {
+            self.darkEdgeOverlay.layer.zPosition = 2
+            self.view.addSubview(self.darkEdgeOverlay)
+        }
     }
 
     private func layoutGradient() {
-        guard self.experiment == .separated else { return }
         self.finiteGradientView.frame = GradientGeometry.frame(
             viewport: self.view.bounds,
             contentOffsetY: self.collectionView.contentOffset.y
+        )
+        self.darkEdgeOverlay.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: self.view.bounds.width,
+            height: max(156, self.view.safeAreaInsets.top + 104)
         )
     }
 }
@@ -204,8 +208,6 @@ extension HealthGradientViewController: UICollectionViewDataSource, UICollection
         switch item {
         case .hero:
             cell.accessibilityIdentifier = "experiment.hero.\(self.experiment.rawValue)"
-        case .specimen:
-            cell.accessibilityIdentifier = "flattened.specimen"
         case .metrics:
             cell.accessibilityIdentifier = "recovered.parameters"
         default:
@@ -240,8 +242,6 @@ private struct LabItemView: View {
         switch self.item {
         case .hero:
             ExperimentHero(experiment: self.experiment)
-        case .specimen:
-            FlattenedSpecimen()
         case let .section(kicker, title):
             SectionHeading(kicker: kicker, title: title)
         case let .step(step):
@@ -264,11 +264,11 @@ private struct ExperimentHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label(self.experiment.badge, systemImage: self.experiment == .separated ? "checkmark.circle.fill" : "xmark.circle.fill")
+                Label(self.experiment.badge, systemImage: self.experiment == .separated ? "checkmark.circle.fill" : "circle.lefthalf.filled")
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(self.experiment.accent)
                 Spacer()
-                Text(self.experiment == .separated ? "2 SOURCES" : "1 SOURCE")
+                Text(self.experiment == .separated ? "SOURCE-AWARE" : "FIXED OVERLAY")
                     .font(.caption2.monospaced().weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -287,32 +287,6 @@ private struct ExperimentHero: View {
                 .foregroundStyle(.white.opacity(0.82))
         }
         .labSurface(accent: self.experiment.accent, emphasized: true)
-    }
-}
-
-private struct FlattenedSpecimen: View {
-    var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            GradientSpecimenView()
-            LinearGradient(colors: [.clear, .black.opacity(0.82)], startPoint: .top, endPoint: .bottom)
-
-            VStack(alignment: .leading, spacing: 7) {
-                Text("SCROLLING COLOR FIELD")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.white.opacity(0.72))
-                Text("This field is part of the page")
-                    .font(.title3.bold())
-                Text("The next opaque card can replace it before the edge effect runs.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.78))
-            }
-            .padding(18)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
-        }
     }
 }
 
@@ -365,31 +339,40 @@ private struct LayerDiagram: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(self.experiment == .separated ? "TWO INPUTS REACH THE EDGE" : "ONE FINISHED IMAGE REACHES THE EDGE")
+            Text(self.experiment == .separated ? "SOURCE-AWARE EDGE" : "DARK OVERLAY ABOVE THE SAME PAGE")
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(self.experiment.accent)
 
             LayerRow(
-                icon: "text.below.photo",
-                title: "Foreground",
-                detail: "Opaque cards, text, and charts",
-                tint: .orange
+                icon: "circle.hexagongrid.fill",
+                title: "Color field",
+                detail: "Independent root sibling in both tabs",
+                tint: .purple
             )
 
             Connector(active: self.experiment == .separated)
 
-            LayerRow(
-                icon: "circle.hexagongrid.fill",
-                title: "Color field",
-                detail: self.experiment == .separated ? "Independent root sibling" : "Already covered inside the page",
-                tint: .purple
-            )
+            if self.experiment == .separated {
+                LayerRow(
+                    icon: "text.below.photo",
+                    title: "Foreground",
+                    detail: "Softened independently at the edge",
+                    tint: .cyan
+                )
+            } else {
+                LayerRow(
+                    icon: "rectangle.tophalf.inset.filled",
+                    title: "Dark edge overlay",
+                    detail: "Fixed blur and black fade above the page",
+                    tint: .orange
+                )
+            }
 
             Divider().overlay(.white.opacity(0.08))
 
             Label(
-                self.experiment == .separated ? "Foreground softens; field remains" : "Opaque foreground has already won",
-                systemImage: self.experiment == .separated ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
+                self.experiment == .separated ? "Field remains visible" : "Overlay darkens the same field",
+                systemImage: self.experiment == .separated ? "checkmark.seal.fill" : "circle.lefthalf.filled"
             )
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(self.experiment.accent)
@@ -433,7 +416,7 @@ private struct Connector: View {
                 .fill(self.active ? Color.cyan : Color.secondary.opacity(0.35))
                 .frame(width: 2, height: 16)
                 .padding(.leading, 19)
-            Text(self.active ? "composited at the edge" : "flattened before the edge")
+            Text(self.active ? "revealed through the edge" : "covered only at the edge")
                 .font(.caption2.monospaced())
                 .foregroundStyle(.tertiary)
         }
@@ -451,7 +434,7 @@ private struct EquationCard: View {
 
             Text(self.experiment == .separated
                  ? "soften(foreground)\n  over background"
-                 : "edgeEffect(foreground\n  over background)")
+                 : "darkMaterial\n  over the same background")
                 .font(.system(.body, design: .monospaced, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -460,7 +443,7 @@ private struct EquationCard: View {
 
             Text(self.experiment == .separated
                  ? "The background is still available when the foreground fades."
-                 : "A blur cannot reconstruct pixels an opaque card already replaced.")
+                 : "The field is still there, but the fixed overlay deliberately suppresses it at the top.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -518,14 +501,6 @@ private struct TakeawayCard: View {
         }
         .labSurface(accent: self.experiment.accent)
     }
-}
-
-private struct GradientSpecimenView: UIViewRepresentable {
-    func makeUIView(context: Context) -> FiniteGradientView {
-        FiniteGradientView()
-    }
-
-    func updateUIView(_ uiView: FiniteGradientView, context: Context) {}
 }
 
 private extension View {

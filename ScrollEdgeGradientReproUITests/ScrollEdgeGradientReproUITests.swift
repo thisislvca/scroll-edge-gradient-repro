@@ -30,15 +30,14 @@ final class ScrollEdgeGradientReproUITests: XCTestCase {
     }
 
     @MainActor
-    func testFlattenedControlIsASeparateTab() throws {
+    func testDarkBlurControlIsASeparateTab() throws {
         let app = XCUIApplication()
         app.launch()
 
-        let flattenedTab = app.tabBars.buttons["Flattened"]
-        XCTAssertTrue(flattenedTab.waitForExistence(timeout: 5))
-        flattenedTab.tap()
+        let darkBlurTab = app.tabBars.buttons["Dark blur"]
+        XCTAssertTrue(darkBlurTab.waitForExistence(timeout: 5))
+        darkBlurTab.tap()
         XCTAssertTrue(app.navigationBars["Scroll Edge Lab"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.cells["experiment.hero.1"].exists)
-        XCTAssertTrue(app.cells["flattened.specimen"].exists)
     }
 }

@@ -18,11 +18,11 @@ When an opaque card reaches the compact navigation region, UIKit can soften the 
 Use the two bottom tabs to switch between:
 
 - **Separated**: the reconstructed two-source hierarchy.
-- **Flattened**: a control experiment where the field is ordinary scroll content and gets buried by opaque cards.
+- **Dark blur**: the same animated background with a fixed Manna-style dark blur/fade over the compact-title region.
 
 Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
-For scripted capture, launch with `--flattened` to start directly in the control experiment (`--one-pass` remains an alias).
+For scripted capture, launch with `--dark-overlay` to start directly in the control experiment (`--flattened` and `--one-pass` remain aliases).
 
 ## Reverse-engineered findings
 
