@@ -25,7 +25,7 @@ private struct ResearchTabController: UIViewControllerRepresentable {
             return navigationController
         }
         let arguments = ProcessInfo.processInfo.arguments
-        tabController.selectedIndex = arguments.contains("--manna-bug") || arguments.contains("--dark-overlay") || arguments.contains("--flattened") || arguments.contains("--one-pass") ? 1 : 0
+        tabController.selectedIndex = arguments.contains("--in-scroll") || arguments.contains("--manna-bug") || arguments.contains("--dark-overlay") || arguments.contains("--flattened") || arguments.contains("--one-pass") ? 1 : 0
         return tabController
     }
 

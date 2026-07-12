@@ -30,15 +30,15 @@ final class ScrollEdgeGradientReproUITests: XCTestCase {
     }
 
     @MainActor
-    func testMannaBugIsASeparateTab() throws {
+    func testInScrollControlIsASeparateTab() throws {
         let app = XCUIApplication()
         app.launch()
 
-        let mannaBugTab = app.tabBars.buttons["Manna bug"]
-        XCTAssertTrue(mannaBugTab.waitForExistence(timeout: 5))
-        mannaBugTab.tap()
+        let inScrollTab = app.tabBars.buttons["In-scroll"]
+        XCTAssertTrue(inScrollTab.waitForExistence(timeout: 5))
+        inScrollTab.tap()
         XCTAssertTrue(app.navigationBars["Scroll Edge Lab"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["The page has color; the edge doesn't"].exists)
+        XCTAssertTrue(app.staticTexts["The gradient shares the scroll source"].exists)
         XCTAssertTrue(app.scrollViews["research.scroll.1"].exists)
     }
 }

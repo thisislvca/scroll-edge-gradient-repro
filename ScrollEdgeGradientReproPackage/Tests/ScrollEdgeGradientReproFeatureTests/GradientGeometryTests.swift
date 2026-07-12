@@ -2,31 +2,19 @@ import CoreGraphics
 import Testing
 @testable import ScrollEdgeGradientReproFeature
 
-@Test("The finite field is 35 percent of the viewport")
-func gradientHeightMatchesReverseEngineeredRatio() {
+@Test("The demo field is 50 percent of the viewport")
+func gradientHeightMatchesDemoRatio() {
     let frame = GradientGeometry.frame(
-        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
-        contentOffsetY: 0
+        viewport: CGRect(x: 0, y: 0, width: 390, height: 800)
     )
 
-    #expect(frame.height == 280)
+    #expect(frame.height == 400)
 }
 
-@Test("The field moves one point for every positive scroll point")
-func gradientTracksPositiveScrollOffset() {
+@Test("The demo field stays pinned to the viewport top")
+func gradientStaysPinnedToViewportTop() {
     let frame = GradientGeometry.frame(
-        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
-        contentOffsetY: 146
-    )
-
-    #expect(frame.minY == -146)
-}
-
-@Test("Overscroll does not pull the field downward")
-func gradientClampsNegativeScrollOffset() {
-    let frame = GradientGeometry.frame(
-        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
-        contentOffsetY: -120
+        viewport: CGRect(x: 0, y: 0, width: 390, height: 800)
     )
 
     #expect(frame.minY == 0)

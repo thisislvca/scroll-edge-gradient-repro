@@ -3,40 +3,40 @@ import UIKit
 
 enum GradientExperiment: Int, CaseIterable {
     case separated
-    case mannaBug
+    case inScroll
 
     var tabTitle: String {
         switch self {
         case .separated: "Separated"
-        case .mannaBug: "Manna bug"
+        case .inScroll: "In-scroll"
         }
     }
 
     var tabImage: String {
         switch self {
         case .separated: "square.3.layers.3d"
-        case .mannaBug: "rectangle.2.swap"
+        case .inScroll: "rectangle.2.swap"
         }
     }
 
     var accent: Color {
         switch self {
         case .separated: .cyan
-        case .mannaBug: .orange
+        case .inScroll: .orange
         }
     }
 
     var badge: String {
         switch self {
         case .separated: "WORKING MODEL"
-        case .mannaBug: "ORIGINAL MANNA BUG"
+        case .inScroll: "GRADIENT INSIDE SCROLL CONTENT"
         }
     }
 
     var heroTitle: String {
         switch self {
         case .separated: "The gradient remains visible"
-        case .mannaBug: "The page has color; the edge doesn't"
+        case .inScroll: "The gradient shares the scroll source"
         }
     }
 
@@ -44,15 +44,15 @@ enum GradientExperiment: Int, CaseIterable {
         switch self {
         case .separated:
             "The color field and scrolling content stay in separate compositing planes."
-        case .mannaBug:
-            "The identical field sits inside scroll content, where opaque cards can replace it before the edge effect runs."
+        case .inScroll:
+            "The field is pinned visually, but remains a child of the same content container as the opaque cards."
         }
     }
 
     var result: String {
         switch self {
         case .separated: "Color survives beneath the compact title"
-        case .mannaBug: "The compact title receives the card's dark pixels"
+        case .inScroll: "Cards replace the field before the edge effect runs"
         }
     }
 }
@@ -113,7 +113,7 @@ final class HealthGradientViewController: UIViewController {
             .section(kicker: "02 · COMPOSITING", title: "What the edge receives"),
             .layers,
             .equation,
-            .section(kicker: "03 · GEOMETRY", title: "A finite, moving field"),
+            .section(kicker: "03 · GEOMETRY", title: "A finite, pinned field"),
             .metrics,
             .section(kicker: "04 · TAKEAWAY", title: "The blur is not the trick"),
             .note,
@@ -199,9 +199,9 @@ final class HealthGradientViewController: UIViewController {
             self.finiteGradientView.layer.zPosition = 0
             self.scrollView.layer.zPosition = 1
             self.view.insertSubview(self.finiteGradientView, belowSubview: self.scrollView)
-        case .mannaBug:
-            // This is the historical Manna hierarchy: the gradient is ordinary
-            // scroll content, behind the opaque cards in the same source plane.
+        case .inScroll:
+            // The field is visually pinned, but remains ordinary scroll content
+            // behind opaque cards in the same effective source plane.
             self.finiteGradientView.layer.zPosition = 0
             self.stackView.layer.zPosition = 1
             self.contentView.insertSubview(self.finiteGradientView, at: 0)
@@ -211,18 +211,11 @@ final class HealthGradientViewController: UIViewController {
     private func layoutGradient() {
         switch self.experiment {
         case .separated:
-            let scrollDistance = max(
-                0,
-                self.scrollView.contentOffset.y + self.scrollView.adjustedContentInset.top
-            )
-            self.finiteGradientView.frame = GradientGeometry.frame(
-                viewport: self.view.bounds,
-                contentOffsetY: scrollDistance
-            )
-        case .mannaBug:
+            self.finiteGradientView.frame = GradientGeometry.frame(viewport: self.view.bounds)
+        case .inScroll:
             self.finiteGradientView.frame = CGRect(
                 x: 0,
-                y: -self.scrollView.adjustedContentInset.top,
+                y: self.scrollView.contentOffset.y,
                 width: self.view.bounds.width,
                 height: self.view.bounds.height * GradientGeometry.heightFraction
             )
@@ -342,7 +335,7 @@ private struct LayerDiagram: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(self.experiment == .separated ? "SOURCE-AWARE EDGE" : "HISTORICAL MANNA HIERARCHY")
+            Text(self.experiment == .separated ? "SOURCE-AWARE EDGE" : "IN-SCROLL BACKGROUND HIERARCHY")
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(self.experiment.accent)
 
@@ -456,7 +449,7 @@ private struct EquationCard: View {
 
 private struct MetricsCard: View {
     private let metrics = [
-        ("35%", "field height"),
+        ("50%", "demo field height"),
         ("12°/s", "rotation"),
         ("4", "color inputs"),
         ("11", "fade samples"),
