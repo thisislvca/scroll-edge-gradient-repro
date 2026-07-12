@@ -11,7 +11,7 @@ The same page is shown in both configurations. In **Separated**, the compact tit
 
 <p align="center">
   <a href="media/scroll-edge-gradient-comparison.mp4">
-    <img src="media/scroll-edge-gradient-comparison.gif" width="400" alt="Screen recording comparing the separated gradient architecture with the in-scroll React Native hierarchy">
+    <img src="media/scroll-edge-gradient-comparison.webp" width="480" alt="Screen recording comparing the separated gradient architecture with the in-scroll React Native hierarchy">
   </a>
 </p>
 
