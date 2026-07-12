@@ -9,13 +9,7 @@ An iOS 26 research repository that reproduces the colorful, animated scroll-edge
 
 The same page is shown in both configurations. In **Separated**, the compact title retains the moving color field behind opaque content. In **In-scroll**, the gradient shares the foreground's compositing source, so the compact edge receives the card's dark pixels instead.
 
-<p align="center">
-  <a href="media/scroll-edge-gradient-comparison.mp4">
-    <img src="media/scroll-edge-gradient-comparison.webp" width="480" alt="Screen recording comparing the separated gradient architecture with the in-scroll React Native hierarchy">
-  </a>
-</p>
-
-<p align="center"><strong><a href="media/scroll-edge-gradient-comparison.mp4">Watch the full-quality 12-second comparison</a></strong></p>
+[scroll-edge-gradient-comparison.webm](https://github.com/user-attachments/assets/8421b890-4b94-414b-8369-e655c64ace9b)
 
 The important trick is not a stronger blur or a tinted navigation bar. The animated field and the scrolling foreground must remain separate compositing sources:
 
