@@ -40,11 +40,11 @@ These details were observed in the iOS 26.3 Simulator version of Apple Health th
 - The gradient is inserted behind the scrolling foreground with a negative layer position.
 - The Health binary contains `contentScrollViewForEdge:` plumbing consistent with explicit UIKit edge registration; this repro uses the public `setContentScrollView(_:for:)` API.
 
-For clearer side-by-side filming, this demo deliberately extends the visible field to 50 percent of the viewport while retaining the observed scroll translation and spatial fade. Health's observed implementation uses a 35-percent field.
+For clearer side-by-side filming, this demo deliberately extends the visible field to 75 percent of the viewport while retaining the observed scroll translation and spatial fade. Health's observed implementation uses a 35-percent field.
 
 ## Exact reconstruction versus approximation
 
-The view hierarchy, scroll equation, four-color uniform layout, 12-degree-per-second animation rate, and smoothstep fade are direct reconstructions of observable implementation details. Only the demo's 50-percent field height intentionally differs from Health's observed 35-percent value.
+The view hierarchy, scroll equation, four-color uniform layout, 12-degree-per-second animation rate, and smoothstep fade are direct reconstructions of observable implementation details. Only the demo's 75-percent field height intentionally differs from Health's observed 35-percent value.
 
 The Metal shader in this repository is a clean-room approximation. Apple's compiled shader exposes four color inputs and uses trigonometric rotation, a directional dot product, clamping, and color mixing, but its original source code is not available. This project recreates that behavior without copying Apple source or private APIs.
 

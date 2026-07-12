@@ -3,7 +3,7 @@ import QuartzCore
 import UIKit
 
 struct GradientGeometry: Equatable, Sendable {
-    static let heightFraction: CGFloat = 0.5
+    static let heightFraction: CGFloat = 0.75
 
     static func frame(viewport: CGRect, contentOffsetY: CGFloat) -> CGRect {
         CGRect(

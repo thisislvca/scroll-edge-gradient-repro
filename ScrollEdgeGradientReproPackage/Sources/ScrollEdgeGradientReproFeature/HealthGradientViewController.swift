@@ -456,7 +456,7 @@ private struct EquationCard: View {
 
 private struct MetricsCard: View {
     private let metrics = [
-        ("50%", "demo field height"),
+        ("75%", "demo field height"),
         ("12°/s", "rotation"),
         ("4", "color inputs"),
         ("11", "fade samples"),
