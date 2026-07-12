@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Scroll Edge Gradient Expo",
+    "slug": "scroll-edge-gradient-expo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "../ScrollEdgeGradientRepro/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+    "userInterfaceStyle": "dark",
+    "platforms": ["ios"],
+    "scheme": "scroll-edge-gradient-expo",
+    "ios": {
+      "bundleIdentifier": "com.lucamene.scrolledgegradient.expo",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-image"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

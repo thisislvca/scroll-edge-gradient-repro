@@ -1,6 +1,21 @@
 # Scroll Edge Gradient Repro
 
-A small iOS 26 research app that reproduces the colorful, animated scroll-edge treatment seen in Apple Health's Summary tab.
+An iOS 26 research repository that reproduces the colorful, animated scroll-edge treatment seen in Apple Health's Summary tab in two apps:
+
+- a native UIKit/SwiftUI reference app;
+- an Expo/React Native app backed by a local Swift module.
+
+## See the difference
+
+The same page is shown in both configurations. In **Separated**, the compact title retains the moving color field behind opaque content. In **In-scroll**, the gradient shares the foreground's compositing source, so the compact edge receives the card's dark pixels instead.
+
+<p align="center">
+  <a href="media/scroll-edge-gradient-comparison.mp4">
+    <img src="media/scroll-edge-gradient-comparison.gif" width="400" alt="Screen recording comparing the separated gradient architecture with the in-scroll React Native hierarchy">
+  </a>
+</p>
+
+<p align="center"><strong><a href="media/scroll-edge-gradient-comparison.mp4">Watch the full-quality 12-second comparison</a></strong></p>
 
 The important trick is not a stronger blur or a tinted navigation bar. The animated field and the scrolling foreground must remain separate compositing sources:
 
@@ -13,14 +28,14 @@ UIViewController root (black)
 
 When an opaque card reaches the compact navigation region, UIKit can soften the scrolling foreground while the independently rendered gradient remains visible behind it. The finite field moves upward with the scroll until its lower edge passes the compact title and reveals black.
 
-## What the app demonstrates
+## What the apps demonstrate
 
 Use the two bottom tabs to switch between:
 
 - **Separated**: the reconstructed two-source hierarchy.
 - **In-scroll**: the same field is nested inside scroll content with the opaque cards, demonstrating the source-flattening failure caused by that hierarchy.
 
-Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
+Each app contains the same two-tab experiment. Every tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
 For scripted capture, launch with `--in-scroll` to start directly in the control.
 
@@ -53,17 +68,35 @@ The Metal shader in this repository is a clean-room approximation. Apple's compi
 - `GradientRenderer.swift`: `CAMetalLayer`, runtime Metal shader, display-link animation, finite smooth fade, and geometry math.
 - `HealthGradientViewController.swift`: two UIKit experiments, their scrollable explainer content, and scroll synchronization.
 - `ContentView.swift`: SwiftUI bridge that hosts the two-tab UIKit comparison.
+- `expo-repro/`: the single Expo/React Native app.
+- `expo-repro/modules/scroll-edge-gradient/`: the Apple-only local Expo module that bridges UIKit scroll registration and the Metal field.
+- `expo-repro/components/repro-screen.tsx`: the shared React Native explainer UI for both Expo tabs.
 
 ## Requirements
 
 - Xcode 26 or newer
 - iOS 26 Simulator or device
 
+### Native app
+
 Open `ScrollEdgeGradientRepro.xcworkspace`, select the `ScrollEdgeGradientRepro` scheme, and run.
+
+### Expo app
+
+The Expo app requires a development build because Expo Go cannot include its local Swift module:
+
+```sh
+cd expo-repro
+bun install
+bunx expo prebuild --platform ios
+bun run ios
+```
+
+See `expo-repro/README.md` for the module API and project-specific notes.
 
 ## Verification
 
-The demo has been built and run on an iPhone 17 Pro simulator running iOS 26.3. Its large-title state, colored compact-title state, and black cutoff state were checked directly in the simulator.
+Both apps have been built and run on an iPhone 17 Pro simulator running iOS 26.3. Their large-title, colored compact-title, in-scroll failure, stable tab-bar, and black-cutoff states were checked directly in the simulator.
 
 ## Research disclaimer
 
