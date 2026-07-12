@@ -289,7 +289,7 @@ private struct ExperimentHero: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.82))
         }
-        .labSurface(accent: self.experiment.accent)
+        .labSurface()
     }
 }
 
@@ -333,7 +333,7 @@ private struct StepCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .labSurface(accent: self.accent)
+        .labSurface()
     }
 }
 
@@ -380,7 +380,7 @@ private struct LayerDiagram: View {
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(self.experiment.accent)
         }
-        .labSurface(accent: self.experiment.accent)
+        .labSurface()
     }
 }
 
@@ -450,7 +450,7 @@ private struct EquationCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .labSurface(accent: self.experiment.accent)
+        .labSurface()
     }
 }
 
@@ -478,7 +478,7 @@ private struct MetricsCard: View {
                 .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
         }
-        .labSurface(accent: .purple)
+        .labSurface()
     }
 }
 
@@ -502,29 +502,18 @@ private struct TakeawayCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .labSurface(accent: self.experiment.accent)
+        .labSurface()
     }
 }
 
 private extension View {
-    func labSurface(accent: Color, emphasized: Bool = false) -> some View {
+    func labSurface() -> some View {
         self
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .padding(18)
             .background {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(Color(red: 0.075, green: 0.075, blue: 0.085))
-                    .overlay(alignment: .topTrailing) {
-                        if emphasized {
-                            RadialGradient(
-                                colors: [accent.opacity(0.15), .clear],
-                                center: .topTrailing,
-                                startRadius: 0,
-                                endRadius: 180
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        }
-                    }
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)

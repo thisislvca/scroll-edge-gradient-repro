@@ -22,7 +22,7 @@ Use the two bottom tabs to switch between:
 
 Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
-For scripted capture, launch with `--in-scroll` to start directly in the control (`--manna-bug`, `--dark-overlay`, `--flattened`, and `--one-pass` remain aliases).
+For scripted capture, launch with `--in-scroll` to start directly in the control.
 
 ## Reverse-engineered findings
 
@@ -53,7 +53,6 @@ The Metal shader in this repository is a clean-room approximation. Apple's compi
 - `GradientRenderer.swift`: `CAMetalLayer`, runtime Metal shader, display-link animation, finite smooth fade, and geometry math.
 - `HealthGradientViewController.swift`: two UIKit experiments, their scrollable explainer content, and scroll synchronization.
 - `ContentView.swift`: SwiftUI bridge that hosts the two-tab UIKit comparison.
-- `GradientGeometryTests.swift`: tests for the recovered geometry and fade curve.
 
 ## Requirements
 
@@ -64,12 +63,7 @@ Open `ScrollEdgeGradientRepro.xcworkspace`, select the `ScrollEdgeGradientRepro`
 
 ## Verification
 
-The repro is tested on an iPhone 17 Pro simulator running iOS 26.3:
-
-- clean Debug build and launch;
-- package geometry tests;
-- UI automation for launch and scrolling;
-- visual captures at the large-title state, colored compact-title state, and black cutoff state.
+The demo has been built and run on an iPhone 17 Pro simulator running iOS 26.3. Its large-title state, colored compact-title state, and black cutoff state were checked directly in the simulator.
 
 ## Research disclaimer
 
