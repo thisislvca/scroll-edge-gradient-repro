@@ -5,16 +5,28 @@ import Testing
 @Test("The demo field is 50 percent of the viewport")
 func gradientHeightMatchesDemoRatio() {
     let frame = GradientGeometry.frame(
-        viewport: CGRect(x: 0, y: 0, width: 390, height: 800)
+        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
+        contentOffsetY: 0
     )
 
     #expect(frame.height == 400)
 }
 
-@Test("The demo field stays pinned to the viewport top")
-func gradientStaysPinnedToViewportTop() {
+@Test("The field moves one point for every positive scroll point")
+func gradientTracksPositiveScrollOffset() {
     let frame = GradientGeometry.frame(
-        viewport: CGRect(x: 0, y: 0, width: 390, height: 800)
+        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
+        contentOffsetY: 146
+    )
+
+    #expect(frame.minY == -146)
+}
+
+@Test("Overscroll does not pull the field downward")
+func gradientClampsNegativeScrollOffset() {
+    let frame = GradientGeometry.frame(
+        viewport: CGRect(x: 0, y: 0, width: 390, height: 800),
+        contentOffsetY: -120
     )
 
     #expect(frame.minY == 0)

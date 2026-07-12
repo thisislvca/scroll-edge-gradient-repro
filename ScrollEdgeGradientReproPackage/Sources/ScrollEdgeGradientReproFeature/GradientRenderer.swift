@@ -5,10 +5,10 @@ import UIKit
 struct GradientGeometry: Equatable, Sendable {
     static let heightFraction: CGFloat = 0.5
 
-    static func frame(viewport: CGRect) -> CGRect {
+    static func frame(viewport: CGRect, contentOffsetY: CGFloat) -> CGRect {
         CGRect(
             x: viewport.minX,
-            y: viewport.minY,
+            y: viewport.minY - max(contentOffsetY, 0),
             width: viewport.width,
             height: viewport.height * heightFraction
         )

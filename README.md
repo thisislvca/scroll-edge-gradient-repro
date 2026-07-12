@@ -11,14 +11,14 @@ UIViewController root (black)
     └── opaque cards, headings, and charts
 ```
 
-When an opaque card reaches the compact navigation region, UIKit can soften the scrolling foreground while the independently rendered gradient remains visible behind it. In this presentation variant, the field stays pinned to the viewport top and fades into black halfway down the screen.
+When an opaque card reaches the compact navigation region, UIKit can soften the scrolling foreground while the independently rendered gradient remains visible behind it. The finite field moves upward with the scroll until its lower edge passes the compact title and reveals black.
 
 ## What the app demonstrates
 
 Use the two bottom tabs to switch between:
 
 - **Separated**: the reconstructed two-source hierarchy.
-- **In-scroll**: the same visually pinned field is nested inside scroll content with the opaque cards, demonstrating the source-flattening failure caused by that hierarchy.
+- **In-scroll**: the same field is nested inside scroll content with the opaque cards, demonstrating the source-flattening failure caused by that hierarchy.
 
 Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
@@ -40,11 +40,11 @@ These details were observed in the iOS 26.3 Simulator version of Apple Health th
 - The gradient is inserted behind the scrolling foreground with a negative layer position.
 - The Health binary contains `contentScrollViewForEdge:` plumbing consistent with explicit UIKit edge registration; this repro uses the public `setContentScrollView(_:for:)` API.
 
-For clearer side-by-side filming, this demo deliberately extends the visible field to 50 percent of the viewport and pins it to the viewport top. Health's observed implementation uses a 35-percent field translated with scroll; the pinned half-screen field is a presentation adjustment requested for this repro.
+For clearer side-by-side filming, this demo deliberately extends the visible field to 50 percent of the viewport while retaining the observed scroll translation and spatial fade. Health's observed implementation uses a 35-percent field.
 
 ## Exact reconstruction versus approximation
 
-The view hierarchy, four-color uniform layout, 12-degree-per-second animation rate, and smoothstep fade are direct reconstructions of observable implementation details. The demo's pinned 50-percent field is intentionally different from Health's observed 35-percent, scroll-translated field.
+The view hierarchy, scroll equation, four-color uniform layout, 12-degree-per-second animation rate, and smoothstep fade are direct reconstructions of observable implementation details. Only the demo's 50-percent field height intentionally differs from Health's observed 35-percent value.
 
 The Metal shader in this repository is a clean-room approximation. Apple's compiled shader exposes four color inputs and uses trigonometric rotation, a directional dot product, clamping, and color mixing, but its original source code is not available. This project recreates that behavior without copying Apple source or private APIs.
 

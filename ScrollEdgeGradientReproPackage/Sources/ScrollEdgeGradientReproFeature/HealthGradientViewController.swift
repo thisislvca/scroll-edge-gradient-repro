@@ -45,7 +45,7 @@ enum GradientExperiment: Int, CaseIterable {
         case .separated:
             "The color field and scrolling content stay in separate compositing planes."
         case .inScroll:
-            "The field is pinned visually, but remains a child of the same content container as the opaque cards."
+            "The field scrolls inside the same content container as the opaque cards, so they share one compositing source."
         }
     }
 
@@ -113,7 +113,7 @@ final class HealthGradientViewController: UIViewController {
             .section(kicker: "02 · COMPOSITING", title: "What the edge receives"),
             .layers,
             .equation,
-            .section(kicker: "03 · GEOMETRY", title: "A finite, pinned field"),
+            .section(kicker: "03 · GEOMETRY", title: "A finite, moving field"),
             .metrics,
             .section(kicker: "04 · TAKEAWAY", title: "The blur is not the trick"),
             .note,
@@ -200,8 +200,8 @@ final class HealthGradientViewController: UIViewController {
             self.scrollView.layer.zPosition = 1
             self.view.insertSubview(self.finiteGradientView, belowSubview: self.scrollView)
         case .inScroll:
-            // The field is visually pinned, but remains ordinary scroll content
-            // behind opaque cards in the same effective source plane.
+            // The field is ordinary scroll content behind opaque cards in the
+            // same effective source plane, matching the failing hierarchy.
             self.finiteGradientView.layer.zPosition = 0
             self.stackView.layer.zPosition = 1
             self.contentView.insertSubview(self.finiteGradientView, at: 0)
@@ -211,11 +211,18 @@ final class HealthGradientViewController: UIViewController {
     private func layoutGradient() {
         switch self.experiment {
         case .separated:
-            self.finiteGradientView.frame = GradientGeometry.frame(viewport: self.view.bounds)
+            let scrollDistance = max(
+                0,
+                self.scrollView.contentOffset.y + self.scrollView.adjustedContentInset.top
+            )
+            self.finiteGradientView.frame = GradientGeometry.frame(
+                viewport: self.view.bounds,
+                contentOffsetY: scrollDistance
+            )
         case .inScroll:
             self.finiteGradientView.frame = CGRect(
                 x: 0,
-                y: self.scrollView.contentOffset.y,
+                y: -self.scrollView.adjustedContentInset.top,
                 width: self.view.bounds.width,
                 height: self.view.bounds.height * GradientGeometry.heightFraction
             )
