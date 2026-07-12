@@ -1,155 +1,133 @@
+import SwiftUI
 import UIKit
 
-private struct ResearchStory {
-    let eyebrow: String
-    let title: String
-    let detail: String
-    let symbol: String
-    let tint: UIColor
-}
-
-enum GradientExperiment: Int {
+enum GradientExperiment: Int, CaseIterable {
     case separated
-    case onePass
-
-    var navigationTitle: String {
-        switch self {
-        case .separated: "Color Under Glass"
-        case .onePass: "One-pass Composite"
-        }
-    }
+    case flattened
 
     var tabTitle: String {
         switch self {
         case .separated: "Separated"
-        case .onePass: "One-pass"
+        case .flattened: "Flattened"
         }
     }
 
     var tabImage: String {
         switch self {
         case .separated: "square.3.layers.3d"
-        case .onePass: "square.stack.3d.down.right"
+        case .flattened: "square.stack.3d.down.right"
         }
     }
 
-    var heroEyebrow: String {
+    var accent: Color {
         switch self {
-        case .separated: "LIVE RECONSTRUCTION"
-        case .onePass: "CONTROL EXPERIMENT"
+        case .separated: .cyan
+        case .flattened: .orange
+        }
+    }
+
+    var badge: String {
+        switch self {
+        case .separated: "WORKING MODEL"
+        case .flattened: "FAILURE CONTROL"
         }
     }
 
     var heroTitle: String {
         switch self {
-        case .separated: "Color survives glass."
-        case .onePass: "Color gets buried."
+        case .separated: "The gradient remains visible"
+        case .flattened: "The gradient disappears"
         }
     }
 
     var heroDetail: String {
         switch self {
         case .separated:
-            "An animated field remains behind opaque content, so the compact title can reveal its real colors."
-        case .onePass:
-            "The same field lives inside scrolling content. Once an opaque card reaches the edge, its dark pixels win."
+            "The color field and scrolling content stay in separate compositing planes."
+        case .flattened:
+            "The field is ordinary scroll content, so an opaque surface replaces its pixels."
         }
     }
 
-    var badge: String {
+    var result: String {
         switch self {
-        case .separated: "TWO SOURCES"
-        case .onePass: "ONE SOURCE"
+        case .separated: "Color survives beneath the compact title"
+        case .flattened: "The compact title receives a dark blur"
+        }
+    }
+}
+
+private struct LabStep {
+    let number: String
+    let title: String
+    let detail: String
+}
+
+private enum LabItem {
+    case hero
+    case specimen
+    case section(kicker: String, title: String)
+    case step(LabStep)
+    case layers
+    case equation
+    case metrics
+    case note
+
+    var height: CGFloat {
+        switch self {
+        case .hero: 188
+        case .specimen: 218
+        case .section: 66
+        case .step: 134
+        case .layers: 300
+        case .equation: 190
+        case .metrics: 222
+        case .note: 166
         }
     }
 }
 
 @MainActor
 final class HealthGradientViewController: UIViewController {
-    private enum Item {
-        case hero
-        case specimen
-        case section(kicker: String, title: String)
-        case story(ResearchStory)
-        case equation(label: String, expression: String, detail: String)
-        case parameters
-
-        var height: CGFloat {
-            switch self {
-            case .hero: return 258
-            case .specimen: return 250
-            case .section: return 74
-            case let .story(story): return story.detail.count > 120 ? 224 : 196
-            case .equation: return 212
-            case .parameters: return 228
-            }
-        }
-    }
-
     private let experiment: GradientExperiment
     private let finiteGradientView = FiniteGradientView()
     private let collectionView: UICollectionView
 
-    private var items: [Item] {
-        let shared: [Item] = [
-            .section(kicker: "THE QUESTION", title: "Why color stays visible"),
-            .story(ResearchStory(
-                eyebrow: "NOT A TINTED BAR",
-                title: "Opaque cards erase what sits behind them.",
-                detail: "A normal blur receives the already-composited page. If a card is opaque, its dark surface has replaced the gradient pixels before the edge effect starts.",
-                symbol: "rectangle.on.rectangle.slash",
-                tint: .systemOrange
-            )),
-            .equation(
-                label: "THE FAILED MENTAL MODEL",
-                expression: "edgeEffect(foreground over background)",
-                detail: "Blurring that finished image can spread a card, but it cannot recover color that the card already covered."
-            ),
-            .section(kicker: "THE RECONSTRUCTION", title: "Keep two images alive"),
-            .story(ResearchStory(
-                eyebrow: "BACKGROUND SOURCE",
-                title: "A finite animated color field.",
-                detail: "The Metal field is a root sibling behind the scroll view. It translates upward one-for-one with scrolling, then its soft bottom edge reveals black.",
-                symbol: "sparkles.rectangle.stack",
-                tint: .systemPurple
-            )),
-            .equation(
-                label: "THE COMPOSITING ORDER",
-                expression: "soften(foreground)  over  background",
-                detail: "Only the scrolling foreground is attenuated near the top. The color source is still available behind it."
-            ),
-            .section(kicker: "RECOVERED VALUES", title: "Small numbers, visible behavior"),
-            .parameters,
-            .section(kicker: "TRY THE EVIDENCE", title: "Scroll, then switch tabs"),
-            .story(ResearchStory(
-                eyebrow: "WHAT TO WATCH",
-                title: "Follow one color through the title region.",
-                detail: "On Separated, purple and blue retain their horizontal positions while the card softens. On One-pass, the same card turns the header into a neutral dark blur.",
-                symbol: "eye.fill",
-                tint: .systemTeal
-            )),
-            .story(ResearchStory(
-                eyebrow: "CLEAN-ROOM NOTE",
-                title: "Behavior reconstructed, shader approximated.",
-                detail: "The hierarchy, geometry, timing, and fade are derived from observable implementation details. This project uses public APIs and a fresh Metal shader.",
-                symbol: "checkmark.seal.fill",
-                tint: .systemGreen
-            )),
-        ]
-
-        switch self.experiment {
-        case .separated:
-            return [.hero] + shared
-        case .onePass:
-            return [.hero, .specimen] + shared
+    private var items: [LabItem] {
+        var result: [LabItem] = [.hero]
+        if self.experiment == .flattened {
+            result.append(.specimen)
         }
+        result += [
+            .section(kicker: "01 · RUN THE TEST", title: "Watch the compact title"),
+            .step(LabStep(
+                number: "1",
+                title: "Scroll a solid card upward",
+                detail: "Stop when its top edge passes beneath the minimized navigation title."
+            )),
+            .step(LabStep(
+                number: "2",
+                title: "Track the orange, purple, and blue",
+                detail: self.experiment == .separated
+                    ? "Their positions remain visible while the foreground softens."
+                    : "They vanish when the opaque card becomes the edge effect's input."
+            )),
+            .section(kicker: "02 · COMPOSITING", title: "What the edge receives"),
+            .layers,
+            .equation,
+            .section(kicker: "03 · GEOMETRY", title: "A finite, moving field"),
+            .metrics,
+            .section(kicker: "04 · TAKEAWAY", title: "The blur is not the trick"),
+            .note,
+        ]
+        return result
     }
 
     init(experiment: GradientExperiment) {
         self.experiment = experiment
         let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 14
-        layout.sectionInset = UIEdgeInsets(top: 12, left: 20, bottom: 120, right: 20)
+        layout.minimumLineSpacing = 12
+        layout.sectionInset = UIEdgeInsets(top: 8, left: 18, bottom: 120, right: 18)
         self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(nibName: nil, bundle: nil)
     }
@@ -160,7 +138,7 @@ final class HealthGradientViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = self.experiment.navigationTitle
+        self.navigationItem.title = "Scroll Edge Lab"
         self.view.backgroundColor = .black
         self.navigationItem.largeTitleDisplayMode = .always
         self.configureCollectionView()
@@ -182,14 +160,19 @@ final class HealthGradientViewController: UIViewController {
         self.collectionView.delegate = self
         self.collectionView.dataSource = self
         self.collectionView.accessibilityIdentifier = "research.collection.\(self.experiment.rawValue)"
-        self.collectionView.register(ResearchCell.self, forCellWithReuseIdentifier: ResearchCell.reuseIdentifier)
+        self.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "LabCell")
         self.view.addSubview(self.collectionView)
     }
 
     private func installExperimentComposition() {
         guard self.experiment == .separated else { return }
-        self.finiteGradientView.layer.zPosition = -1
-        self.view.insertSubview(self.finiteGradientView, at: 0)
+
+        // Keep the field above the root view's black backing layer, but below the
+        // transparent scrolling foreground. A negative zPosition can place it
+        // behind the root layer itself and make it disappear on some layouts.
+        self.finiteGradientView.layer.zPosition = 0
+        self.collectionView.layer.zPosition = 1
+        self.view.insertSubview(self.finiteGradientView, belowSubview: self.collectionView)
     }
 
     private func layoutGradient() {
@@ -210,26 +193,23 @@ extension HealthGradientViewController: UICollectionViewDataSource, UICollection
         _ collectionView: UICollectionView,
         cellForItemAt indexPath: IndexPath
     ) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: ResearchCell.reuseIdentifier,
-            for: indexPath
-        ) as? ResearchCell else {
-            return UICollectionViewCell()
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "LabCell", for: indexPath)
+        let item = self.items[indexPath.item]
+        cell.backgroundColor = .clear
+        cell.contentConfiguration = UIHostingConfiguration {
+            LabItemView(item: item, experiment: self.experiment)
         }
+        .margins(.all, 0)
 
-        switch self.items[indexPath.item] {
+        switch item {
         case .hero:
-            cell.configureHero(experiment: self.experiment)
+            cell.accessibilityIdentifier = "experiment.hero.\(self.experiment.rawValue)"
         case .specimen:
-            cell.configureSpecimen()
-        case let .section(kicker, title):
-            cell.configureSection(kicker: kicker, title: title)
-        case let .story(story):
-            cell.configureStory(story)
-        case let .equation(label, expression, detail):
-            cell.configureEquation(label: label, expression: expression, detail: detail)
-        case .parameters:
-            cell.configureParameters()
+            cell.accessibilityIdentifier = "flattened.specimen"
+        case .metrics:
+            cell.accessibilityIdentifier = "recovered.parameters"
+        default:
+            cell.accessibilityIdentifier = nil
         }
         return cell
     }
@@ -251,239 +231,326 @@ extension HealthGradientViewController: UICollectionViewDataSource, UICollection
     }
 }
 
-@MainActor
-private final class ResearchCell: UICollectionViewCell {
-    private enum Style {
-        case hero, specimen, section, story, equation, parameters
-    }
+private struct LabItemView: View {
+    let item: LabItem
+    let experiment: GradientExperiment
 
-    static let reuseIdentifier = "ResearchCell"
-
-    private let cardBackground = UIView()
-    private let gradientSpecimen = FiniteGradientView()
-    private let eyebrowLabel = UILabel()
-    private let titleLabel = UILabel()
-    private let detailLabel = UILabel()
-    private let iconView = UIImageView()
-    private let badgeLabel = UILabel()
-    private let codeBackground = UIView()
-    private let codeLabel = UILabel()
-    private let accentLine = UIView()
-    private var style: Style = .story
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        self.configureViews()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.style = .story
-        self.cardBackground.isHidden = false
-        self.gradientSpecimen.isHidden = true
-        self.eyebrowLabel.isHidden = false
-        self.titleLabel.isHidden = false
-        self.detailLabel.isHidden = false
-        self.iconView.isHidden = false
-        self.badgeLabel.isHidden = true
-        self.codeBackground.isHidden = true
-        self.accentLine.isHidden = false
-        self.cardBackground.backgroundColor = UIColor(white: 0.105, alpha: 0.96)
-        self.cardBackground.layer.borderWidth = 1
-        self.cardBackground.layer.borderColor = UIColor.white.withAlphaComponent(0.07).cgColor
-        self.titleLabel.textColor = .label
-        self.titleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
-        self.detailLabel.textColor = .secondaryLabel
-        self.detailLabel.font = .preferredFont(forTextStyle: .body)
-        self.detailLabel.numberOfLines = 0
-        self.codeLabel.text = nil
-        self.accessibilityIdentifier = nil
-    }
-
-    private func configureViews() {
-        self.cardBackground.layer.cornerRadius = 26
-        self.cardBackground.layer.cornerCurve = .continuous
-        self.cardBackground.clipsToBounds = true
-        self.contentView.addSubview(self.cardBackground)
-
-        self.gradientSpecimen.layer.cornerRadius = 26
-        self.gradientSpecimen.layer.cornerCurve = .continuous
-        self.gradientSpecimen.clipsToBounds = true
-        self.cardBackground.insertSubview(self.gradientSpecimen, at: 0)
-
-        self.accentLine.layer.cornerRadius = 2
-        self.cardBackground.addSubview(self.accentLine)
-
-        self.eyebrowLabel.font = .systemFont(ofSize: 11, weight: .bold)
-        self.eyebrowLabel.textColor = .secondaryLabel
-        self.eyebrowLabel.adjustsFontForContentSizeCategory = true
-        self.cardBackground.addSubview(self.eyebrowLabel)
-
-        self.titleLabel.numberOfLines = 0
-        self.titleLabel.lineBreakMode = .byWordWrapping
-        self.titleLabel.adjustsFontForContentSizeCategory = true
-        self.cardBackground.addSubview(self.titleLabel)
-
-        self.detailLabel.adjustsFontForContentSizeCategory = true
-        self.cardBackground.addSubview(self.detailLabel)
-
-        self.iconView.contentMode = .scaleAspectFit
-        self.cardBackground.addSubview(self.iconView)
-
-        self.badgeLabel.font = .systemFont(ofSize: 11, weight: .bold)
-        self.badgeLabel.textAlignment = .center
-        self.badgeLabel.textColor = .white
-        self.badgeLabel.backgroundColor = UIColor.white.withAlphaComponent(0.16)
-        self.badgeLabel.layer.cornerRadius = 13
-        self.badgeLabel.layer.cornerCurve = .continuous
-        self.badgeLabel.clipsToBounds = true
-        self.cardBackground.addSubview(self.badgeLabel)
-
-        self.codeBackground.backgroundColor = UIColor.black.withAlphaComponent(0.32)
-        self.codeBackground.layer.cornerRadius = 14
-        self.codeBackground.layer.cornerCurve = .continuous
-        self.cardBackground.addSubview(self.codeBackground)
-
-        self.codeLabel.font = .monospacedSystemFont(ofSize: 13, weight: .medium)
-        self.codeLabel.textColor = UIColor(red: 0.76, green: 0.84, blue: 1, alpha: 1)
-        self.codeLabel.numberOfLines = 0
-        self.codeBackground.addSubview(self.codeLabel)
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        self.cardBackground.frame = self.contentView.bounds
-        self.gradientSpecimen.frame = self.cardBackground.bounds
-        let inset: CGFloat = 20
-        let width = self.bounds.width - 2 * inset
-
-        switch self.style {
+    @ViewBuilder
+    var body: some View {
+        switch self.item {
         case .hero:
-            self.accentLine.frame = CGRect(x: inset, y: 20, width: 42, height: 4)
-            self.eyebrowLabel.frame = CGRect(x: inset, y: 34, width: width - 120, height: 18)
-            self.badgeLabel.frame = CGRect(x: self.bounds.width - 112, y: 28, width: 92, height: 26)
-            self.titleLabel.frame = CGRect(x: inset, y: 64, width: width, height: 64)
-            self.detailLabel.frame = CGRect(x: inset, y: 134, width: width - 10, height: 92)
+            ExperimentHero(experiment: self.experiment)
         case .specimen:
-            self.accentLine.frame = CGRect(x: inset, y: 20, width: 42, height: 4)
-            self.eyebrowLabel.frame = CGRect(x: inset, y: 34, width: width, height: 18)
-            self.titleLabel.frame = CGRect(x: inset, y: 64, width: width - 40, height: 32)
-            self.detailLabel.frame = CGRect(x: inset, y: 103, width: width - 26, height: 58)
-            self.codeBackground.frame = CGRect(x: inset, y: self.bounds.height - 64, width: width, height: 44)
-            self.codeLabel.frame = self.codeBackground.bounds.insetBy(dx: 12, dy: 7)
-        case .section:
-            self.eyebrowLabel.frame = CGRect(x: 2, y: 8, width: width, height: 16)
-            self.titleLabel.frame = CGRect(x: 0, y: 27, width: self.bounds.width, height: 40)
-        case .story:
-            self.accentLine.frame = CGRect(x: inset, y: 20, width: 34, height: 4)
-            self.eyebrowLabel.frame = CGRect(x: inset, y: 34, width: width - 58, height: 18)
-            self.iconView.frame = CGRect(x: self.bounds.width - 48, y: 22, width: 26, height: 26)
-            self.titleLabel.frame = CGRect(x: inset, y: 62, width: width, height: 52)
-            self.detailLabel.frame = CGRect(x: inset, y: 120, width: width, height: self.bounds.height - 136)
+            FlattenedSpecimen()
+        case let .section(kicker, title):
+            SectionHeading(kicker: kicker, title: title)
+        case let .step(step):
+            StepCard(step: step, accent: self.experiment.accent)
+        case .layers:
+            LayerDiagram(experiment: self.experiment)
         case .equation:
-            self.accentLine.frame = CGRect(x: inset, y: 20, width: 34, height: 4)
-            self.eyebrowLabel.frame = CGRect(x: inset, y: 34, width: width, height: 18)
-            self.codeBackground.frame = CGRect(x: inset, y: 61, width: width, height: 52)
-            self.codeLabel.frame = self.codeBackground.bounds.insetBy(dx: 12, dy: 8)
-            self.detailLabel.frame = CGRect(x: inset, y: 128, width: width, height: 62)
-        case .parameters:
-            self.accentLine.frame = CGRect(x: inset, y: 20, width: 34, height: 4)
-            self.eyebrowLabel.frame = CGRect(x: inset, y: 34, width: width, height: 18)
-            self.titleLabel.frame = CGRect(x: inset, y: 61, width: width, height: 30)
-            self.codeBackground.frame = CGRect(x: inset, y: 104, width: width, height: 102)
-            self.codeLabel.frame = self.codeBackground.bounds.insetBy(dx: 14, dy: 10)
+            EquationCard(experiment: self.experiment)
+        case .metrics:
+            MetricsCard()
+        case .note:
+            TakeawayCard(experiment: self.experiment)
         }
     }
+}
 
-    func configureHero(experiment: GradientExperiment) {
-        self.prepareForReuse()
-        self.style = .hero
-        self.cardBackground.backgroundColor = UIColor.black.withAlphaComponent(experiment == .separated ? 0.26 : 0.86)
-        self.cardBackground.layer.borderColor = UIColor.white.withAlphaComponent(0.12).cgColor
-        self.accentLine.backgroundColor = experiment == .separated ? .systemCyan : .systemOrange
-        self.eyebrowLabel.text = experiment.heroEyebrow
-        self.titleLabel.text = experiment.heroTitle
-        self.titleLabel.font = .systemFont(ofSize: 30, weight: .bold)
-        self.titleLabel.numberOfLines = 2
-        self.detailLabel.text = experiment.heroDetail
-        self.badgeLabel.isHidden = false
-        self.badgeLabel.text = experiment.badge
-        self.accessibilityIdentifier = "experiment.hero.\(experiment.rawValue)"
+private struct ExperimentHero: View {
+    let experiment: GradientExperiment
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label(self.experiment.badge, systemImage: self.experiment == .separated ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(self.experiment.accent)
+                Spacer()
+                Text(self.experiment == .separated ? "2 SOURCES" : "1 SOURCE")
+                    .font(.caption2.monospaced().weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(self.experiment.heroTitle)
+                .font(.title2.bold())
+                .foregroundStyle(.white)
+
+            Text(self.experiment.heroDetail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Label(self.experiment.result, systemImage: "arrow.down.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.82))
+        }
+        .labSurface(accent: self.experiment.accent, emphasized: true)
+    }
+}
+
+private struct FlattenedSpecimen: View {
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            GradientSpecimenView()
+            LinearGradient(colors: [.clear, .black.opacity(0.82)], startPoint: .top, endPoint: .bottom)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("SCROLLING COLOR FIELD")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.72))
+                Text("This field is part of the page")
+                    .font(.title3.bold())
+                Text("The next opaque card can replace it before the edge effect runs.")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.78))
+            }
+            .padding(18)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
+        }
+    }
+}
+
+private struct SectionHeading: View {
+    let kicker: String
+    let title: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(self.kicker)
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.tertiary)
+            Text(self.title)
+                .font(.title3.bold())
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .padding(.horizontal, 2)
+    }
+}
+
+private struct StepCard: View {
+    let step: LabStep
+    let accent: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Text(self.step.number)
+                .font(.subheadline.monospaced().bold())
+                .foregroundStyle(self.accent)
+                .frame(width: 36, height: 36)
+                .background(self.accent.opacity(0.14), in: Circle())
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text(self.step.title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text(self.step.detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .labSurface(accent: self.accent)
+    }
+}
+
+private struct LayerDiagram: View {
+    let experiment: GradientExperiment
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(self.experiment == .separated ? "TWO INPUTS REACH THE EDGE" : "ONE FINISHED IMAGE REACHES THE EDGE")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(self.experiment.accent)
+
+            LayerRow(
+                icon: "text.below.photo",
+                title: "Foreground",
+                detail: "Opaque cards, text, and charts",
+                tint: .orange
+            )
+
+            Connector(active: self.experiment == .separated)
+
+            LayerRow(
+                icon: "circle.hexagongrid.fill",
+                title: "Color field",
+                detail: self.experiment == .separated ? "Independent root sibling" : "Already covered inside the page",
+                tint: .purple
+            )
+
+            Divider().overlay(.white.opacity(0.08))
+
+            Label(
+                self.experiment == .separated ? "Foreground softens; field remains" : "Opaque foreground has already won",
+                systemImage: self.experiment == .separated ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
+            )
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(self.experiment.accent)
+        }
+        .labSurface(accent: self.experiment.accent)
+    }
+}
+
+private struct LayerRow: View {
+    let icon: String
+    let title: String
+    let detail: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: self.icon)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(self.tint)
+                .frame(width: 40, height: 40)
+                .background(self.tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(self.title)
+                    .font(.headline)
+                Text(self.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+private struct Connector: View {
+    let active: Bool
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Rectangle()
+                .fill(self.active ? Color.cyan : Color.secondary.opacity(0.35))
+                .frame(width: 2, height: 16)
+                .padding(.leading, 19)
+            Text(self.active ? "composited at the edge" : "flattened before the edge")
+                .font(.caption2.monospaced())
+                .foregroundStyle(.tertiary)
+        }
+    }
+}
+
+private struct EquationCard: View {
+    let experiment: GradientExperiment
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("COMPOSITING ORDER")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(self.experiment.accent)
+
+            Text(self.experiment == .separated
+                 ? "soften(foreground)\n  over background"
+                 : "edgeEffect(foreground\n  over background)")
+                .font(.system(.body, design: .monospaced, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            Text(self.experiment == .separated
+                 ? "The background is still available when the foreground fades."
+                 : "A blur cannot reconstruct pixels an opaque card already replaced.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .labSurface(accent: self.experiment.accent)
+    }
+}
+
+private struct MetricsCard: View {
+    private let metrics = [
+        ("35%", "field height"),
+        ("12°/s", "rotation"),
+        ("4", "color inputs"),
+        ("11", "fade samples"),
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            ForEach(self.metrics, id: \.1) { value, label in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(value)
+                        .font(.title2.monospacedDigit().bold())
+                        .foregroundStyle(.white)
+                    Text(label)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
+                .padding(.horizontal, 14)
+                .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+        }
+        .labSurface(accent: .purple)
+    }
+}
+
+private struct TakeawayCard: View {
+    let experiment: GradientExperiment
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: "square.3.layers.3d.top.filled")
+                .font(.title3)
+                .foregroundStyle(self.experiment.accent)
+                .frame(width: 42, height: 42)
+                .background(self.experiment.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("Preserve the source planes")
+                    .font(.headline)
+                Text("The animated field can be beautiful, but the key is keeping it alive behind the edge treatment. Geometry creates the eventual fade to black.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .labSurface(accent: self.experiment.accent)
+    }
+}
+
+private struct GradientSpecimenView: UIViewRepresentable {
+    func makeUIView(context: Context) -> FiniteGradientView {
+        FiniteGradientView()
     }
 
-    func configureSpecimen() {
-        self.prepareForReuse()
-        self.style = .specimen
-        self.gradientSpecimen.isHidden = false
-        self.cardBackground.backgroundColor = .clear
-        self.cardBackground.layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
-        self.accentLine.backgroundColor = .white
-        self.eyebrowLabel.text = "SCROLLING COLOR FIELD"
-        self.eyebrowLabel.textColor = UIColor.white.withAlphaComponent(0.75)
-        self.titleLabel.text = "The field is now part of the page."
-        self.titleLabel.textColor = .white
-        self.titleLabel.font = .systemFont(ofSize: 23, weight: .bold)
-        self.titleLabel.numberOfLines = 2
-        self.detailLabel.text = "Scroll until the next opaque card occupies the top edge. The color cannot remain available there."
-        self.detailLabel.textColor = UIColor.white.withAlphaComponent(0.86)
-        self.codeBackground.isHidden = false
-        self.codeLabel.text = "scrolling field + opaque card = flattened pixels"
-        self.accessibilityIdentifier = "one-pass.specimen"
-    }
+    func updateUIView(_ uiView: FiniteGradientView, context: Context) {}
+}
 
-    func configureSection(kicker: String, title: String) {
-        self.prepareForReuse()
-        self.style = .section
-        self.cardBackground.backgroundColor = .clear
-        self.cardBackground.layer.borderWidth = 0
-        self.accentLine.isHidden = true
-        self.iconView.isHidden = true
-        self.detailLabel.isHidden = true
-        self.eyebrowLabel.text = kicker
-        self.eyebrowLabel.textColor = .tertiaryLabel
-        self.titleLabel.text = title
-        self.titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
-        self.titleLabel.numberOfLines = 1
-    }
-
-    func configureStory(_ story: ResearchStory) {
-        self.prepareForReuse()
-        self.style = .story
-        self.accentLine.backgroundColor = story.tint
-        self.eyebrowLabel.text = story.eyebrow
-        self.titleLabel.text = story.title
-        self.titleLabel.numberOfLines = 2
-        self.detailLabel.text = story.detail
-        self.iconView.image = UIImage(systemName: story.symbol)
-        self.iconView.tintColor = story.tint
-        self.accessibilityLabel = "\(story.title), \(story.detail)"
-    }
-
-    func configureEquation(label: String, expression: String, detail: String) {
-        self.prepareForReuse()
-        self.style = .equation
-        self.accentLine.backgroundColor = .systemPurple
-        self.iconView.isHidden = true
-        self.eyebrowLabel.text = label
-        self.codeBackground.isHidden = false
-        self.codeLabel.text = expression
-        self.detailLabel.text = detail
-        self.accessibilityLabel = "\(label), \(expression), \(detail)"
-    }
-
-    func configureParameters() {
-        self.prepareForReuse()
-        self.style = .parameters
-        self.accentLine.backgroundColor = .systemCyan
-        self.iconView.isHidden = true
-        self.eyebrowLabel.text = "OBSERVED IN THE SYSTEM APP"
-        self.titleLabel.text = "The field has a real footprint."
-        self.codeBackground.isHidden = false
-        self.codeLabel.text = "height     0.35 × viewport\norigin     −max(scrollY, 0)\nrotation   12° / second\nfade       smoothstep × 11 samples"
-        self.accessibilityIdentifier = "recovered.parameters"
+private extension View {
+    func labSurface(accent: Color, emphasized: Bool = false) -> some View {
+        self
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding(18)
+            .background {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color(red: 0.075, green: 0.075, blue: 0.085))
+                    .overlay(alignment: .topTrailing) {
+                        if emphasized {
+                            RadialGradient(
+                                colors: [accent.opacity(0.15), .clear],
+                                center: .topTrailing,
+                                startRadius: 0,
+                                endRadius: 180
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        }
+                    }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(.white.opacity(0.085), lineWidth: 1)
+            }
     }
 }

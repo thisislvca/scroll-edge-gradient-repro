@@ -15,22 +15,19 @@ private struct ResearchTabController: UIViewControllerRepresentable {
         let tabController = UITabBarController()
         tabController.viewControllers = GradientExperiment.allCases.map { experiment in
             let screen = HealthGradientViewController(experiment: experiment)
-            screen.tabBarItem = UITabBarItem(
-                title: experiment.tabTitle,
-                image: UIImage(systemName: experiment.tabImage),
-                selectedImage: UIImage(systemName: experiment.tabImage + ".fill")
-            )
             let navigationController = UINavigationController(rootViewController: screen)
             navigationController.navigationBar.prefersLargeTitles = true
+            navigationController.tabBarItem = UITabBarItem(
+                title: experiment.tabTitle,
+                image: UIImage(systemName: experiment.tabImage),
+                selectedImage: UIImage(systemName: experiment.tabImage)
+            )
             return navigationController
         }
-        tabController.selectedIndex = ProcessInfo.processInfo.arguments.contains("--one-pass") ? 1 : 0
+        let arguments = ProcessInfo.processInfo.arguments
+        tabController.selectedIndex = arguments.contains("--flattened") || arguments.contains("--one-pass") ? 1 : 0
         return tabController
     }
 
     func updateUIViewController(_ uiViewController: UITabBarController, context: Context) {}
-}
-
-private extension GradientExperiment {
-    static let allCases: [GradientExperiment] = [.separated, .onePass]
 }

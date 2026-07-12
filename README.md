@@ -18,11 +18,11 @@ When an opaque card reaches the compact navigation region, UIKit can soften the 
 Use the two bottom tabs to switch between:
 
 - **Separated**: the reconstructed two-source hierarchy.
-- **One-pass**: a control experiment where the field is ordinary scroll content and gets buried by opaque cards.
+- **Flattened**: a control experiment where the field is ordinary scroll content and gets buried by opaque cards.
 
 Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
-For scripted capture, launch with `--one-pass` to start directly in the control experiment.
+For scripted capture, launch with `--flattened` to start directly in the control experiment (`--one-pass` remains an alias).
 
 ## Reverse-engineered findings
 
