@@ -15,28 +15,30 @@ final class ScrollEdgeGradientReproUITests: XCTestCase {
     }
 
     @MainActor
-    func testSummaryScrollsThroughFiniteGradientDemo() throws {
+    func testSeparatedExperimentScrollsThroughTheExplainer() throws {
         let app = XCUIApplication()
         app.launch()
 
-        XCTAssertTrue(app.navigationBars["Summary"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.cells["mode.card"].exists)
-        XCTAssertTrue(app.buttons["mode.menu"].exists)
+        XCTAssertTrue(app.navigationBars["Color Under Glass"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.cells["experiment.hero.0"].exists)
 
-        let collection = app.collectionViews["research.collection"]
+        let collection = app.collectionViews["research.collection.0"]
         XCTAssertTrue(collection.exists)
         collection.swipeUp()
-        XCTAssertTrue(app.staticTexts["Trends"].waitForExistence(timeout: 3))
+        XCTAssertTrue(collection.exists)
+        XCTAssertTrue(app.navigationBars["Color Under Glass"].exists)
     }
 
     @MainActor
-    func testFlattenedBaselineCanLaunchDirectly() throws {
+    func testOnePassControlIsASeparateTab() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--flattened"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["FLATTENED BASELINE"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Gradient Architecture"].exists)
-        XCTAssertTrue(app.staticTexts["Pinned"].exists)
+        let onePassTab = app.tabBars.buttons["One-pass"]
+        XCTAssertTrue(onePassTab.waitForExistence(timeout: 5))
+        onePassTab.tap()
+        XCTAssertTrue(app.navigationBars["One-pass Composite"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.cells["experiment.hero.1"].exists)
+        XCTAssertTrue(app.cells["one-pass.specimen"].exists)
     }
 }

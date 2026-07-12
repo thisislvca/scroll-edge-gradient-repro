@@ -15,14 +15,14 @@ When an opaque card reaches the compact navigation region, UIKit can soften the 
 
 ## What the app demonstrates
 
-Use the sliders button in the navigation bar to switch between:
+Use the two bottom tabs to switch between:
 
-- **Source separated**: the reconstructed Health-style hierarchy.
-- **Flattened baseline**: the gradient is assigned to the collection view itself, demonstrating why an ordinary background often collapses into a dark card blur.
+- **Separated**: the reconstructed two-source hierarchy.
+- **One-pass**: a control experiment where the field is ordinary scroll content and gets buried by opaque cards.
 
-Scroll slowly until the first opaque card passes beneath the compact `Summary` title. Continue scrolling to see the finite color field transition completely to black.
+Each tab is a scrollable explainer with the compositing model, observed values, and a concrete visual test. Scroll slowly until the first opaque card passes beneath the compact title; then switch tabs and compare the top edge.
 
-For scripted capture, launch with `--flattened` to start directly in the baseline mode.
+For scripted capture, launch with `--one-pass` to start directly in the control experiment.
 
 ## Reverse-engineered findings
 
@@ -49,8 +49,8 @@ The Metal shader in this repository is a clean-room approximation. Apple's compi
 ## Code map
 
 - `GradientRenderer.swift`: `CAMetalLayer`, runtime Metal shader, display-link animation, finite smooth fade, and geometry math.
-- `HealthGradientViewController.swift`: source-separated UIKit hierarchy, collection-view cards, scroll synchronization, and comparison mode.
-- `ContentView.swift`: minimal SwiftUI bridge that hosts the UIKit navigation controller.
+- `HealthGradientViewController.swift`: two UIKit experiments, their scrollable explainer content, and scroll synchronization.
+- `ContentView.swift`: SwiftUI bridge that hosts the two-tab UIKit comparison.
 - `GradientGeometryTests.swift`: tests for the recovered geometry and fade curve.
 
 ## Requirements
